@@ -1,8 +1,19 @@
-type UsdcTransfer @entity {
+type MarketInfo @entity {
   id: ID!
-  block: Int!
+  block: Int! @index
+  marketToken: String! @index
+  indexToken: String! @index
+  longToken: String!
+  shortToken: String!
+}
+
+type MarketTokenTransfer @entity {
+  id: ID!
+  block: Int! @index
   from: String! @index
   to: String! @index
   value: BigInt!
   txnHash: String! @index
+  tokenAddress: String! @index
+  factoryEvent: JSON
 }

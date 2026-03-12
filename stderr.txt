@@ -1,0 +1,4 @@
+{"level":2,"time":1773207705152,"ns":"sqd:processor","msg":"last processed final block was 8151979"}
+{"level":2,"time":1773207705152,"ns":"sqd:processor","msg":"processing blocks from 8151980"}
+{"level":2,"time":1773207705542,"ns":"sqd:processor","msg":"using archive data source"}
+{"level":2,"time":1773207706144,"ns":"sqd:processor","msg":"prometheus metrics are served at port 63527"}
