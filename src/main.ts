@@ -4,8 +4,11 @@ import { events as emitterEvents } from './abi/EventEmitter'
 import { events as marketTokenEvents } from './abi/MarketToken'
 import { MarketInfo, MarketTokenTransfer } from './model'
 import pino from 'pino'
-import { createLogger, LogLevel, LogRecord, setRootSink } from '@subsquid/logger'
-import { DatadogMetricsSink, PrometheusServer } from '../../squid-sdk/util/util-internal-processor-tools/lib'
+import { createLogger, createPinoSink, LogLevel, LogRecord, setRootSink } from '@subsquid/logger'
+import { PrometheusServer } from '../../squid-sdk/util/util-internal-processor-tools/lib'
+import { DatadogMetricsSink } from './datadog-metrics-sink'
+
+//import { DatadogMetricsSink } from './datadog-metrics-sink'
 
 const EVENT_EMITTER_ADDRESS = '0xC8ee91A54287DB53897056e12D9819156D3822Fb'.toLowerCase()
 const EVENTLOG1_TOPIC = emitterEvents.EventLog1.topic
@@ -13,15 +16,24 @@ const TRANSFER_TOPIC = marketTokenEvents.Transfer.topic
 //const START_BLOCK = 107748264; 
 const START_BLOCK = 340981939;
 
-// setPinoRootSink(pino({
-//   transport:
-//     process.env.NODE_ENV !== 'production'
-//       ? { target: 'pino-pretty', options: { colorize: true } }
-//       : undefined,
-// }));
+interface PinoLikeLogger {
+  trace(obj: unknown, msg?: string): void
+  debug(obj: unknown, msg?: string): void
+  info(obj: unknown, msg?: string): void
+  warn(obj: unknown, msg?: string): void
+  error(obj: unknown, msg?: string): void
+  fatal(obj: unknown, msg?: string): void
+}
+
+setRootSink(createPinoSink(pino({
+  transport:
+    process.env.NODE_ENV !== 'production'
+      ? { target: 'pino-pretty', options: { colorize: true } }
+      : undefined,
+})));
 
 const loggerSub = createLogger("submodule");
-loggerSub.info("from submodule");
+loggerSub.error(new Error("some err"), "from submodule");
 
 loggerSub.child("sub2").error("error from sub2");
 
@@ -37,7 +49,7 @@ const processor = new EvmBatchProcessor()
   .setGateway('https://v2.archive.subsquid.io/network/arbitrum-one')
   .setRpcEndpoint('https://arb1.arbitrum.io/rpc')
   .setFinalityConfirmation(75)
-  .setPrometheusServer(prometheusServer)
+  //.setPrometheusServer(prometheusServer)
   .addLog({
     address: [EVENT_EMITTER_ADDRESS],
     topic0: [EVENTLOG1_TOPIC],
@@ -53,7 +65,7 @@ const processor = new EvmBatchProcessor()
     },
   })
 
-const db = new TypeormDatabase({ supportHotBlocks: true })
+const db = new TypeormDatabase({ supportHotBlocks: true, stateSchema: "squid_processor" })
 
 function getAddressItem(
   eventData: { addressItems: { items: { key: string; value: string }[] } },
